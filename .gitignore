@@ -28,3 +28,6 @@ cp2_azure_vm_rsa*
 # OS/Editor
 .DS_Store
 .vscode/
+
+# Local generated keys (Terraform)
+.keys/
