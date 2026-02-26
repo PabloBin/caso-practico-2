@@ -40,7 +40,7 @@ spec:
               valueFrom:
                 secretKeyRef:
                   name: redis-secret
-                  key: redis_password
+                  key: REDIS_PASSWORD
           volumeMounts:
             - name: redis-storage
               mountPath: /data
@@ -89,7 +89,7 @@ spec:
               valueFrom:
                 secretKeyRef:
                   name: redis-secret
-                  key: redis_password
+                  key: REDIS_PASSWORD
 ---
 apiVersion: v1
 kind: Service
