@@ -38,3 +38,11 @@ output "ssh_private_key_path" {
 output "ssh_public_key_path" {
   value = local_file.vm_ssh_public.filename
 }
+
+output "aks_name" {
+  value = azurerm_kubernetes_cluster.aks.name
+}
+
+output "aks_resource_group" {
+  value = azurerm_resource_group.rg.name
+}

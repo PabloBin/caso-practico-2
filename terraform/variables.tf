@@ -38,3 +38,21 @@ variable "ssh_key_name" {
   description = "Base filename for the generated SSH key (private key). Public key will be <name>.pub"
   default     = "vm_ubuntu_key"
 }
+
+variable "aks_node_count" {
+  type        = number
+  description = "Number of nodes in the AKS node pool"
+  default     = 1
+}
+
+variable "aks_vm_size" {
+  type        = string
+  description = "VM size for AKS nodes"
+  default     = "Standard_DS2_v2"
+}
+
+variable "aks_dns_prefix" {
+  type        = string
+  description = "DNS prefix for AKS"
+  default     = "cp2aks"
+}
