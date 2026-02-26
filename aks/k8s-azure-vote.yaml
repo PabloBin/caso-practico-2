@@ -30,6 +30,8 @@ spec:
       labels:
         app: azure-vote-back
     spec:
+      securityContext:
+        fsGroup: 1001
       containers:
         - name: redis
           image: pablocondecp2zbo9ruacr.azurecr.io/aks/redis:casopractico2
