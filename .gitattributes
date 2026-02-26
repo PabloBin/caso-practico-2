@@ -1,0 +1,22 @@
+# Por defecto, normaliza a LF en el repo
+* text=auto eol=lf
+
+# Scripts siempre LF
+*.sh text eol=lf
+*.bash text eol=lf
+
+# Infra-as-code / config (LF)
+*.yml text eol=lf
+*.yaml text eol=lf
+*.tf text eol=lf
+*.tfvars text eol=lf
+*.ini text eol=lf
+
+# Evitar tocar binarios
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.pdf binary
+*.zip binary
+*.exe binary
+*.dll binary
