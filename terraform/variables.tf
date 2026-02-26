@@ -48,7 +48,7 @@ variable "aks_node_count" {
 variable "aks_vm_size" {
   type        = string
   description = "VM size for AKS nodes"
-  default     = "Standard_DS2_v2"
+  default     = "Standard_B2s_v2"
 }
 
 variable "aks_dns_prefix" {
