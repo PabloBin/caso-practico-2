@@ -40,7 +40,7 @@ spec:
               value: "yes"
           volumeMounts:
             - name: redis-storage
-              mountPath: /data
+              mountPath: /bitnami/redis/data
       volumes:
         - name: redis-storage
           persistentVolumeClaim:
