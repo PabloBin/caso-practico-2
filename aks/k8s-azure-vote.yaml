@@ -1,4 +1,13 @@
 apiVersion: v1
+kind: Secret
+metadata:
+  name: redis-secret
+  namespace: cp2
+type: Opaque
+stringData:
+  REDIS_PASSWORD: "yVeZmsIa6LfxCi$KYWR!DpRY*bqHY2t^c*ynZQ3O56DmPTJaADpMEZQJ9ZGWC0l6Jeo*gMV3&OmlA64t"
+---
+apiVersion: v1
 kind: Namespace
 metadata:
   name: cp2
@@ -35,6 +44,12 @@ spec:
           image: pablocondecp2zbo9ruacr.azurecr.io/aks/redis:casopractico2
           ports:
             - containerPort: 6379
+          env:
+            - name: REDIS_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: redis-secret
+                  key: REDIS_PASSWORD
           volumeMounts:
             - name: redis-storage
               mountPath: /data
