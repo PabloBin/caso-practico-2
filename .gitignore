@@ -1,0 +1,30 @@
+# Terraform
+**/.terraform/
+*.tfstate
+*.tfstate.*
+*.tfplan
+tfplan
+
+# Variables / secretos Terraform
+*.tfvars
+*.tfvars.json
+
+# Ansible
+*.retry
+ansible.log
+
+# Certificados / claves / credenciales (MUY IMPORTANTE)
+*.pem
+*.key
+*.pfx
+*.crt
+*.cer
+*.p12
+*.htpasswd
+id_rsa*
+id_ed25519*
+cp2_azure_vm_rsa*
+
+# OS/Editor
+.DS_Store
+.vscode/

@@ -1,0 +1,12 @@
+---
+acr_login_server: "pablocondecp2zbo9ruacr.azurecr.io"
+acr_username: "pablocondecp2zbo9ruacr"
+
+nginx_secure_image: "{{ acr_login_server }}/podman/nginx-secure:casopractico2"
+nginx_secure_name: "nginx-secure"
+nginx_secure_host_port: 8443
+
+basic_auth_user: "admin"
+
+# Carpeta en la VM (usuario azureuser)
+nginx_secure_dir: "/home/azureuser/nginx-secure"
