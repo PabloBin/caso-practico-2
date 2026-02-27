@@ -4,16 +4,13 @@
   gather_facts: true
   vars_files:
     - group_vars/vault.yml
-  vars:
-    - vm.yml
+    - group_vars/vm.yml
 
   vars:
-    acr_name: "pablocondecp2zbo9ruacr"
-    acr_login_server: "pablocondecp2zbo9ruacr.azurecr.io"
     image_name: "podman/nginx-secure"
     image_tag: "casopractico2"
     full_image: "{{ acr_login_server }}/{{ image_name }}:{{ image_tag }}"
-
+    
     container_name: "nginx-secure"
     host_port_https: 443
     container_port_https: 8443
