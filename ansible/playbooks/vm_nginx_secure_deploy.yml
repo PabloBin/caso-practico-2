@@ -1,0 +1,8 @@
+---
+- name: Desplegar nginx-secure en VM desde ACR (pull+run+checks)
+  hosts: vm
+  gather_facts: true
+  vars_files:
+    - "{{ playbook_dir }}/../group_vars/vault.yml"
+  roles:
+    - vm_nginx_secure

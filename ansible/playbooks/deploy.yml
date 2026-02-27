@@ -97,7 +97,7 @@
         selfsigned_not_after: "+365d"
         mode: "0644"
 
-    - name: Pull de la imagen nginx-secure:clean desde ACR
+    - name: Pull de la imagen nginx-secure desde ACR
       containers.podman.podman_image:
         name: "{{ nginx_secure_image }}"
 
@@ -115,20 +115,33 @@
           - "{{ nginx_secure_dir }}/cert:/etc/nginx/cert:ro"
 
     - name: Validación local en la VM (401 sin auth)
-      ansible.builtin.command: bash -lc "curl -k -I https://localhost:{{ nginx_secure_host_port }} | head -n 1"
-      register: curl_unauth
+      ansible.builtin.uri:
+        url: "https://localhost:{{ nginx_secure_host_port }}/"
+        method: GET
+        validate_certs: false
+        return_content: false
+        status_code: 401
+      register: check_unauth
       changed_when: false
 
-    - name: Mostrar 401 sin auth
+    - name: Mostrar resultado 401 sin auth
       ansible.builtin.debug:
-        var: curl_unauth.stdout
+        msg: "Sin credenciales: HTTP {{ check_unauth.status }}"
 
     - name: Validación local en la VM (200 con auth)
       no_log: true
-      ansible.builtin.command: bash -lc "curl -k -I -u '{{ basic_auth_user }}:{{ basic_auth_password }}' https://localhost:{{ nginx_secure_host_port }} | head -n 1"
-      register: curl_auth
+      ansible.builtin.uri:
+        url: "https://localhost:{{ nginx_secure_host_port }}/"
+        method: GET
+        validate_certs: false
+        return_content: false
+        status_code: 200
+        force_basic_auth: true
+        url_username: "{{ basic_auth_user }}"
+        url_password: "{{ basic_auth_password }}"
+      register: check_auth
       changed_when: false
 
-    - name: Mostrar 200 con auth
+    - name: Mostrar resultado 200 con auth
       ansible.builtin.debug:
-        var: curl_auth.stdout
+        msg: "Con credenciales: HTTP {{ check_auth.status }}"

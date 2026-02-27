@@ -1,0 +1,48 @@
+---
+- name: Preparar VM (Ubuntu) e instalar Podman
+  hosts: vm
+  become: true
+  gather_facts: true
+  roles:
+    - vm_base
+# ---
+# - name: Preparar VM (Ubuntu) e instalar Podman
+#   hosts: vm
+#   become: true
+#   gather_facts: true
+
+#   tasks:
+#     - name: APT update
+#       ansible.builtin.apt:
+#         update_cache: true
+#         cache_valid_time: 3600
+
+#     - name: Instalar Podman y dependencias útiles (rootless)
+#       ansible.builtin.apt:
+#         name:
+#           - podman
+#           - uidmap
+#           - slirp4netns
+#           - fuse-overlayfs
+#           - containernetworking-plugins
+#         state: present
+
+#     - name: Obtener información de Podman (con fallback)
+#       block:
+#         - name: Podman info (module)
+#           containers.podman.podman_info:
+#           register: podman_info
+#           changed_when: false
+
+#         - name: Mostrar versión Podman (module)
+#           ansible.builtin.debug:
+#             msg: "Podman version: {{ podman_info.host.version | default('unknown') }}"
+#       rescue:
+#         - name: Fallback - obtener versión Podman (command)
+#           ansible.builtin.command: podman --version
+#           register: podman_version
+#           changed_when: false
+
+#         - name: Mostrar versión Podman (fallback)
+#           ansible.builtin.debug:
+#             var: podman_version.stdout

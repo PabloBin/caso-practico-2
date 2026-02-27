@@ -1,2 +1,6 @@
-acr_login_server: "pablocondecp2zbo9ruacr.azurecr.io"
-acr_username: "pablocondecp2zbo9ruacr"
+---
+# ACR
+# acr_password debe estar en vault.yml
+acr_name: "{{ tf_acr_name }}"
+acr_login_server: "{{ tf_acr_login_server }}"
+acr_username: "{{ tf_acr_name }}"

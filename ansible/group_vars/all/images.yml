@@ -1,12 +1,14 @@
+---
+# Imágenes para AKS que se copian/suben al ACR
 container_images:
   - source: "docker.io"
     name: "bitnami/redis"
     tag: "latest"
     dest_repo: "aks/redis"
-    dest_tag: "casopractico2"
+    dest_tag: "{{ cp2_tag }}"
 
   - source: "docker.io"
     name: "suhuruli/azure-vote-front"
     tag: "latest"
     dest_repo: "aks/azure-vote-front"
-    dest_tag: "casopractico2"
+    dest_tag: "{{ cp2_tag }}"

@@ -1,0 +1,6 @@
+---
+# Variables comunes del Caso Práctico 2
+cp2_tag: "casopractico2"
+
+# Namespace usado por Azure Vote
+aks_namespace: "azure-vote"

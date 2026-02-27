@@ -1,0 +1,17 @@
+---
+- name: Subir imágenes AKS al ACR (rol existente)
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  vars_files:
+    - "{{ playbook_dir }}/../group_vars/vault.yml"
+  roles:
+    - acr_push
+# - name: Push container images to ACR (Podman)
+#   hosts: localhost
+#   connection: local
+#   gather_facts: false
+#   vars_files:
+#     - group_vars/vault.yml
+#   roles:
+#     - acr_push

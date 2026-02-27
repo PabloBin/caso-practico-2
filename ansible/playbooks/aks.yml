@@ -1,0 +1,16 @@
+---
+- name: Deploy application to AKS (Azure Vote + Redis) - without kubectl
+  hosts: localhost
+  connection: local
+  gather_facts: false
+
+  vars:
+    kubeconfig_path: "{{ kubeconfig_path | default(omit) }}"
+    aks_manifest_path: "{{ playbook_dir }}/../aks/k8s-azure-vote.yaml"
+
+  tasks:
+    - name: Apply AKS manifest (kubernetes.core.k8s)
+      kubernetes.core.k8s:
+        state: present
+        kubeconfig: "{{ kubeconfig_path }}"
+        src: "{{ aks_manifest_path }}"

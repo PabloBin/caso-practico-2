@@ -1,0 +1,44 @@
+---
+- name: Definir rutas del build context
+  ansible.builtin.set_fact:
+    repo_root: "{{ playbook_dir }}/../.."
+    cert_dir: "{{ (playbook_dir + '/../..') | realpath }}/podman/nginx-secure/certs"
+    crt_path: "{{ ((playbook_dir + '/../..') | realpath) }}/podman/nginx-secure/certs/server.crt"
+    key_path: "{{ ((playbook_dir + '/../..') | realpath) }}/podman/nginx-secure/certs/server.key"
+    htpasswd_path: "{{ ((playbook_dir + '/../..') | realpath) }}/podman/nginx-secure/certs/.htpasswd"
+
+- name: Asegurar carpeta certs
+  ansible.builtin.file:
+    path: "{{ cert_dir }}"
+    state: directory
+    mode: "0755"
+
+- name: Generar clave privada (si no existe)
+  community.crypto.openssl_privatekey:
+    path: "{{ key_path }}"
+    size: 2048
+    type: RSA
+    mode: "0600"
+
+- name: Generar certificado autofirmado (si no existe)
+  community.crypto.x509_certificate:
+    path: "{{ crt_path }}"
+    privatekey_path: "{{ key_path }}"
+    provider: selfsigned
+    selfsigned_not_after: "+3650d"
+    subject:
+      common_name: "nginx-secure"
+      country_name: "ES"
+      state_or_province_name: "Huesca"
+      locality_name: "Binefar"
+      organization_name: "CP2"
+      organizational_unit_name: "DevOps"
+    mode: "0644"
+
+- name: Generar htpasswd dentro del build context (si no existe)
+  community.general.htpasswd:
+    path: "{{ htpasswd_path }}"
+    name: "{{ nginx_basic_user }}"
+    password: "{{ nginx_basic_password }}"
+    crypt_scheme: apr_md5_crypt
+    mode: "0644"

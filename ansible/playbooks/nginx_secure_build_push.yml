@@ -1,0 +1,9 @@
+---
+- name: Build & Push nginx-secure al ACR (sin az cli / sin command)
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  vars_files:
+    - "{{ playbook_dir }}/../group_vars/vault.yml"
+  roles:
+    - nginx_secure_image

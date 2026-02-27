@@ -1,0 +1,25 @@
+---
+- name: Definir build context e imagen destino
+  ansible.builtin.set_fact:
+    repo_root: "{{ (playbook_dir + '/../..') | realpath }}"
+    image_dir: "{{ (playbook_dir + '/../..') | realpath }}/podman/nginx-secure"
+    full_image: "{{ acr_login_server }}/podman/nginx-secure:{{ cp2_tag }}"
+
+- name: Login en ACR (Podman)
+  no_log: true
+  containers.podman.podman_login:
+    registry: "{{ acr_login_server }}"
+    username: "{{ acr_username }}"
+    password: "{{ acr_password }}"
+
+- name: Build imagen nginx-secure con Podman (module)
+  containers.podman.podman_image:
+    name: "{{ full_image }}"
+    path: "{{ image_dir }}"
+    build:
+      file: "{{ image_dir }}/Containerfile"
+
+- name: Push imagen nginx-secure al ACR (module)
+  containers.podman.podman_image:
+    name: "{{ full_image }}"
+    push: true

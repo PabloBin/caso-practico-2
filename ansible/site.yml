@@ -1,0 +1,48 @@
+---
+# Orquestador principal (CP2)
+# Ejecutar todo:
+#   ansible-playbook site.yml --ask-vault-pass
+#
+# Ejecutar por partes:
+#   ansible-playbook site.yml --ask-vault-pass --tags "vm,deploy_vm"
+#
+# Tags:
+#   vm              -> prepara VM (Podman)
+#   nginx_assets    -> genera cert+htpasswd para construir imagen nginx-secure
+#   nginx_image     -> build+push nginx-secure al ACR (sin az cli)
+#   acr_images      -> push imágenes AKS al ACR (rol acr_push)
+#   deploy_vm       -> despliega nginx-secure en VM (pull+run)
+#   aks_secrets     -> secret redis (k8s module)
+#   aks_deploy      -> aplica manifiesto AKS (k8s module)
+
+- name: Sincronizar inventario y variables desde Terraform outputs
+  import_playbook: playbooks/sync_from_terraform.yml
+  tags: [sync_tf]
+
+- name: Preparar VM (Ubuntu) e instalar Podman
+  import_playbook: playbooks/vm.yml
+  tags: [vm]
+
+- name: Generar assets nginx-secure (cert + htpasswd) para la imagen
+  import_playbook: playbooks/nginx_secure_assets.yml
+  tags: [nginx_assets]
+
+- name: Build & Push imagen nginx-secure al ACR
+  import_playbook: playbooks/nginx_secure_build_push.yml
+  tags: [nginx_image]
+
+- name: Subir imágenes (AKS) al ACR
+  import_playbook: playbooks/acr_push.yml
+  tags: [acr_images]
+
+- name: Desplegar nginx-secure en VM (Podman + TLS + Basic Auth)
+  import_playbook: playbooks/vm_nginx_secure_deploy.yml
+  tags: [deploy_vm]
+
+- name: Crear secretos AKS (Redis)
+  import_playbook: playbooks/aks_secrets.yml
+  tags: [aks_secrets]
+
+- name: Desplegar aplicación en AKS
+  import_playbook: playbooks/aks_deploy.yml
+  tags: [aks_deploy]

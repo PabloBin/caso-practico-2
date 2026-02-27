@@ -1,0 +1,55 @@
+---
+- name: Validar variables mínimas
+  ansible.builtin.assert:
+    that:
+      - acr_login_server is defined
+      - acr_username is defined
+      - acr_password is defined
+      - nginx_secure_image is defined
+      - nginx_secure_name is defined
+      - nginx_secure_host_port is defined
+      - nginx_basic_user is defined
+      - nginx_basic_password is defined
+    fail_msg: "Faltan variables (ACR/nginx-secure/basic auth). Revisa group_vars/*."
+
+- name: Login en ACR (Podman) desde la VM
+  no_log: true
+  containers.podman.podman_login:
+    registry: "{{ acr_login_server }}"
+    username: "{{ acr_username }}"
+    password: "{{ acr_password }}"
+
+- name: Pull imagen nginx-secure desde ACR
+  containers.podman.podman_image:
+    name: "{{ nginx_secure_image }}"
+
+- name: Ejecutar contenedor nginx-secure (TLS + Basic Auth dentro de la imagen)
+  containers.podman.podman_container:
+    name: "{{ nginx_secure_name }}"
+    image: "{{ nginx_secure_image }}"
+    state: started
+    restart_policy: always
+    publish:
+      - "{{ nginx_secure_host_port }}:443"
+
+- name: Validación local (401 sin auth)
+  ansible.builtin.uri:
+    url: "https://localhost:{{ nginx_secure_host_port }}/"
+    method: GET
+    validate_certs: false
+    return_content: false
+    status_code: 401
+  changed_when: false
+
+- name: Validación local (200 con auth)
+  no_log: true
+  ansible.builtin.uri:
+    url: "https://localhost:{{ nginx_secure_host_port }}/"
+    method: GET
+    validate_certs: false
+    return_content: false
+    status_code: 200
+    force_basic_auth: true
+    url_username: "{{ nginx_basic_user }}"
+    url_password: "{{ nginx_basic_password }}"
+  changed_when: false

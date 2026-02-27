@@ -1,0 +1,5 @@
+---
+- name: Aplicar secret redis en AKS (kubernetes.core.k8s)
+  kubernetes.core.k8s:
+    state: present
+    definition: "{{ lookup('template', playbook_dir ~ '/../templates/redis-secret.yaml.j2') | from_yaml }}"
