@@ -1,0 +1,48 @@
+- name: Build assets for nginx-secure image (cert + htpasswd) from Ansible Vault
+  hosts: localhost
+  gather_facts: false
+
+  vars:
+    repo_root: "{{ playbook_dir }}/.."
+    cert_dir: "{{ repo_root }}/podman/nginx-secure/certs"
+    crt_path: "{{ cert_dir }}/server.crt"
+    key_path: "{{ cert_dir }}/server.key"
+    htpasswd_path: "{{ cert_dir }}/.htpasswd"
+    cert_days: 3650
+    cert_subject: "/C=ES/ST=Huesca/L=Binefar/O=CP2/OU=DevOps/CN=nginx-secure"
+
+  tasks:
+    - name: Ensure cert directory exists
+      ansible.builtin.file:
+        path: "{{ cert_dir }}"
+        state: directory
+        mode: "0755"
+
+    - name: Install apache2-utils (for htpasswd)
+      become: true
+      ansible.builtin.apt:
+        name: apache2-utils
+        state: present
+        update_cache: true
+
+    - name: Generate self-signed certificate (only if missing)
+      ansible.builtin.command: >
+        openssl req -x509 -nodes -newkey rsa:2048
+        -keyout {{ key_path }}
+        -out {{ crt_path }}
+        -days {{ cert_days }}
+        -subj "{{ cert_subject }}"
+      args:
+        creates: "{{ crt_path }}"
+
+    - name: Generate htpasswd file (only if missing)
+      ansible.builtin.command: >
+        htpasswd -bc {{ htpasswd_path }} {{ nginx_basic_user }} {{ nginx_basic_password }}
+      args:
+        creates: "{{ htpasswd_path }}"
+
+    - name: Secure private key permissions
+      ansible.builtin.file:
+        path: "{{ key_path }}"
+        mode: "0600"
+      when: key_path is defined

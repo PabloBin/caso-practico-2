@@ -1,0 +1,17 @@
+# podman/nginx-secure/Containerfile
+FROM nginx:1.25-alpine
+
+# Copiamos contenido web
+COPY html/ /usr/share/nginx/html/
+
+# Copiamos cert + key (autofirmados) dentro de la imagen
+COPY certs/server.crt /etc/nginx/certs/server.crt
+COPY certs/server.key /etc/nginx/certs/server.key
+
+# Credenciales Basic Auth (htpasswd) dentro de la imagen
+COPY certs/.htpasswd /etc/nginx/.htpasswd
+
+# Config nginx (TLS + Basic Auth)
+COPY nginx.conf /etc/nginx/nginx.conf
+
+EXPOSE 443
