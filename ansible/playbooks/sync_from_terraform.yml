@@ -34,11 +34,16 @@
       ansible.builtin.set_fact:
         tf_outputs: "{{ tf_out.stdout | from_json }}"
 
+    - name: Compute missing outputs
+      ansible.builtin.set_fact:
+        missing_outputs: "{{ required_outputs | difference(tf_outputs.keys() | list) }}"
+
     - name: Validate required Terraform outputs exist
       ansible.builtin.assert:
-        that: "{{ required_outputs | map('in', tf_outputs.keys() | list) | list | min }}"
+        that:
+          - missing_outputs | length == 0
         fail_msg: >
-          Faltan outputs en Terraform. Esperados: {{ required_outputs }}.
+          Faltan outputs en Terraform: {{ missing_outputs }}.
           Disponibles: {{ tf_outputs.keys() | list }}
 
     - name: Build simplified output map
