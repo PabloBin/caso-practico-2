@@ -16,7 +16,7 @@
 #   aks_deploy      -> aplica manifiesto AKS (k8s module)
 
 - name: Sincronizar inventario y variables desde Terraform outputs
-  import_playbook: playbooks/sync_from_terraform.yml
+  import_playbook: playbooks/sync-from-terraform.yml
   tags: [sync_tf]
 
 - name: Preparar VM (Ubuntu) e instalar Podman
@@ -24,25 +24,25 @@
   tags: [vm]
 
 - name: Generar assets nginx-secure (cert + htpasswd) para la imagen
-  import_playbook: playbooks/nginx_secure_assets.yml
+  import_playbook: playbooks/nginx-secure-assets.yml
   tags: [nginx_assets]
 
 - name: Build & Push imagen nginx-secure al ACR
-  import_playbook: playbooks/nginx_secure_build_push.yml
+  import_playbook: playbooks/nginx-secure-build-push.yml
   tags: [nginx_image]
 
 - name: Subir imágenes (AKS) al ACR
-  import_playbook: playbooks/acr_push.yml
+  import_playbook: playbooks/acr-push.yml
   tags: [acr_images]
 
 - name: Desplegar nginx-secure en VM (Podman + TLS + Basic Auth)
-  import_playbook: playbooks/vm_nginx_secure_deploy.yml
+  import_playbook: playbooks/vm-nginx-secure-deploy.yml
   tags: [deploy_vm]
 
 - name: Crear secretos AKS (Redis)
-  import_playbook: playbooks/aks_secrets.yml
+  import_playbook: playbooks/aks-secrets.yml
   tags: [aks_secrets]
 
 - name: Desplegar aplicación en AKS
-  import_playbook: playbooks/aks_deploy.yml
+  import_playbook: playbooks/aks-deploy.yml
   tags: [aks_deploy]
