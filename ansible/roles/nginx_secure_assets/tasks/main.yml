@@ -1,10 +1,10 @@
 ---
 - name: Definir rutas del build context
   ansible.builtin.set_fact:
-    repo_root: "{{ playbook_dir }}/../.."
-    cert_dir: "{{ (playbook_dir + '/../..') | realpath }}/podman/nginx-secure/certs"
+    cert_dir: "{{ ((playbook_dir + '/../..') | realpath) }}/podman/nginx-secure/certs"
     crt_path: "{{ ((playbook_dir + '/../..') | realpath) }}/podman/nginx-secure/certs/server.crt"
     key_path: "{{ ((playbook_dir + '/../..') | realpath) }}/podman/nginx-secure/certs/server.key"
+    csr_path: "{{ ((playbook_dir + '/../..') | realpath) }}/podman/nginx-secure/certs/server.csr"
     htpasswd_path: "{{ ((playbook_dir + '/../..') | realpath) }}/podman/nginx-secure/certs/.htpasswd"
 
 - name: Asegurar carpeta certs
@@ -20,19 +20,25 @@
     type: RSA
     mode: "0600"
 
-- name: Generar certificado autofirmado (si no existe)
+- name: Generar CSR (si no existe)
+  community.crypto.openssl_csr:
+    path: "{{ csr_path }}"
+    privatekey_path: "{{ key_path }}"
+    common_name: "nginx-secure"
+    country_name: "ES"
+    state_or_province_name: "Huesca"
+    locality_name: "Binefar"
+    organization_name: "CP2"
+    organizational_unit_name: "DevOps"
+    mode: "0644"
+
+- name: Generar certificado autofirmado desde CSR (si no existe)
   community.crypto.x509_certificate:
     path: "{{ crt_path }}"
+    csr_path: "{{ csr_path }}"
     privatekey_path: "{{ key_path }}"
     provider: selfsigned
     selfsigned_not_after: "+3650d"
-    subject:
-      common_name: "nginx-secure"
-      country_name: "ES"
-      state_or_province_name: "Huesca"
-      locality_name: "Binefar"
-      organization_name: "CP2"
-      organizational_unit_name: "DevOps"
     mode: "0644"
 
 - name: Generar htpasswd dentro del build context (si no existe)
