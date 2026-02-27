@@ -1,0 +1,79 @@
+- name: Deploy nginx-secure on Azure VM using Podman (443 + TLS + Basic Auth)
+  hosts: azurevm
+  become: true
+  gather_facts: true
+
+  vars_files:
+    - group_vars/vault.yml
+
+  vars:
+    acr_name: "pablocondecp2zbo9ruacr"
+    acr_login_server: "pablocondecp2zbo9ruacr.azurecr.io"
+    image_name: "podman/nginx-secure"
+    image_tag: "casopractico2"
+    full_image: "{{ acr_login_server }}/{{ image_name }}:{{ image_tag }}"
+
+    container_name: "nginx-secure"
+    host_port_https: 443
+    container_port_https: 8443
+
+    systemd_unit_path: "/etc/systemd/system/{{ container_name }}.service"
+
+  tasks:
+    - name: Ensure podman is installed
+      ansible.builtin.apt:
+        name: podman
+        state: present
+        update_cache: true
+
+    - name: Ensure Azure CLI is installed (for ACR login)
+      ansible.builtin.apt:
+        name: azure-cli
+        state: present
+        update_cache: true
+
+    - name: ACR login from Azure VM (non-interactive, via Azure CLI session)
+      ansible.builtin.command: az acr login --name "{{ acr_name }}"
+      changed_when: false
+
+    - name: Pull image from ACR
+      ansible.builtin.command: podman pull "{{ full_image }}"
+      changed_when: true
+
+    - name: Remove existing container if any
+      ansible.builtin.command: podman rm -f "{{ container_name }}"
+      failed_when: false
+      changed_when: false
+
+    - name: Run container (map 443 -> 8443)
+      ansible.builtin.command: >
+        podman run -d --name {{ container_name }}
+        --restart=always
+        -p {{ host_port_https }}:{{ container_port_https }}
+        {{ full_image }}
+      changed_when: true
+
+    - name: Create systemd unit for the container
+      ansible.builtin.command: podman generate systemd --name "{{ container_name }}" --files --new
+      args:
+        chdir: /tmp
+      changed_when: true
+
+    - name: Install systemd unit
+      ansible.builtin.copy:
+        src: "/tmp/container-{{ container_name }}.service"
+        dest: "{{ systemd_unit_path }}"
+        owner: root
+        group: root
+        mode: "0644"
+        remote_src: true
+
+    - name: Reload systemd
+      ansible.builtin.systemd:
+        daemon_reload: true
+
+    - name: Enable and start service
+      ansible.builtin.systemd:
+        name: "{{ container_name }}"
+        enabled: true
+        state: started
