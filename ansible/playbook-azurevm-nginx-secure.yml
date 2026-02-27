@@ -2,6 +2,7 @@
   hosts: azurevm
   become: true
   gather_facts: true
+
   vars_files:
     - group_vars/vault.yml
     - group_vars/vm.yml
@@ -10,7 +11,7 @@
     image_name: "podman/nginx-secure"
     image_tag: "casopractico2"
     full_image: "{{ acr_login_server }}/{{ image_name }}:{{ image_tag }}"
-    
+
     container_name: "nginx-secure"
     host_port_https: 443
     container_port_https: 8443
@@ -27,12 +28,8 @@
     - name: Podman login to ACR (admin user)
       ansible.builtin.command: >
         podman login {{ acr_login_server }}
-        -u {{ acr_admin_username }}
-        -p {{ acr_admin_password }}
-      changed_when: false
-
-    - name: ACR login from Azure VM (non-interactive, via Azure CLI session)
-      ansible.builtin.command: az acr login --name "{{ acr_name }}"
+        -u {{ acr_username }}
+        -p {{ acr_password }}
       changed_when: false
 
     - name: Pull image from ACR
