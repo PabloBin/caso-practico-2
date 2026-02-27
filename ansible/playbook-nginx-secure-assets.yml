@@ -1,6 +1,8 @@
 - name: Build assets for nginx-secure image (cert + htpasswd) from Ansible Vault
   hosts: localhost
   gather_facts: false
+  vars_files:
+    - group_vars/vault.yml
 
   vars:
     repo_root: "{{ playbook_dir }}/.."
