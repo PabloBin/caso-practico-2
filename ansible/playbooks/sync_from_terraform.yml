@@ -1,5 +1,5 @@
 ---
-- name: Sync Ansible inventory/vars from Terraform outputs
+- name: Sync Ansible inventory/vars from Terraform outputs (terraform output -json)
   hosts: localhost
   connection: local
   gather_facts: false
@@ -23,32 +23,38 @@
       - aks_resource_group
 
   tasks:
-    - name: Read Terraform outputs
-      community.general.terraform_output:
-        project_path: "{{ terraform_dir }}"
-      register: tf
+    - name: Read Terraform outputs via CLI
+      ansible.builtin.command: terraform output -json
+      args:
+        chdir: "{{ terraform_dir }}"
+      register: tf_out
+      changed_when: false
+
+    - name: Parse outputs JSON
+      ansible.builtin.set_fact:
+        tf_outputs: "{{ tf_out.stdout | from_json }}"
 
     - name: Validate required Terraform outputs exist
       ansible.builtin.assert:
-        that: "{{ required_outputs | map('in', tf.outputs.keys() | list) | list | min }}"
+        that: "{{ required_outputs | map('in', tf_outputs.keys() | list) | list | min }}"
         fail_msg: >
           Faltan outputs en Terraform. Esperados: {{ required_outputs }}.
-          Disponibles: {{ tf.outputs.keys() | list }}
+          Disponibles: {{ tf_outputs.keys() | list }}
 
     - name: Build simplified output map
       ansible.builtin.set_fact:
         tf_map:
-          resource_group_name: "{{ tf.outputs.resource_group_name.value }}"
-          location: "{{ tf.outputs.location.value }}"
-          acr_name: "{{ tf.outputs.acr_name.value }}"
-          acr_login_server: "{{ tf.outputs.acr_login_server.value }}"
-          vm_public_ip: "{{ tf.outputs.vm_public_ip.value }}"
-          vm_name: "{{ tf.outputs.vm_name.value }}"
-          vm_admin_username: "{{ tf.outputs.vm_admin_username.value }}"
-          ssh_private_key_path: "{{ tf.outputs.ssh_private_key_path.value }}"
-          ssh_public_key_path: "{{ tf.outputs.ssh_public_key_path.value }}"
-          aks_name: "{{ tf.outputs.aks_name.value }}"
-          aks_resource_group: "{{ tf.outputs.aks_resource_group.value }}"
+          resource_group_name: "{{ tf_outputs.resource_group_name.value }}"
+          location: "{{ tf_outputs.location.value }}"
+          acr_name: "{{ tf_outputs.acr_name.value }}"
+          acr_login_server: "{{ tf_outputs.acr_login_server.value }}"
+          vm_public_ip: "{{ tf_outputs.vm_public_ip.value }}"
+          vm_name: "{{ tf_outputs.vm_name.value }}"
+          vm_admin_username: "{{ tf_outputs.vm_admin_username.value }}"
+          ssh_private_key_path: "{{ tf_outputs.ssh_private_key_path.value }}"
+          ssh_public_key_path: "{{ tf_outputs.ssh_public_key_path.value }}"
+          aks_name: "{{ tf_outputs.aks_name.value }}"
+          aks_resource_group: "{{ tf_outputs.aks_resource_group.value }}"
 
     - name: Write group_vars/all/terraform.yml
       ansible.builtin.template:
