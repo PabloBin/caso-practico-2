@@ -1,5 +1,5 @@
 # podman/nginx-secure/Containerfile
-FROM nginx:1.25-alpine
+FROM docker.io/library/nginx:1.25-alpine
 
 # Copiamos contenido web
 COPY html/ /usr/share/nginx/html/
