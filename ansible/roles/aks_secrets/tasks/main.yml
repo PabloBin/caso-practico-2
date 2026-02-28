@@ -1,5 +1,14 @@
 ---
-- name: Aplicar secret redis en AKS (kubernetes.core.k8s)
+- name: Ensure AKS namespace exists
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: v1
+      kind: Namespace
+      metadata:
+        name: "{{ aks_namespace }}"
+
+- name: Apply Redis secret in AKS
   kubernetes.core.k8s:
     state: present
     definition: "{{ lookup('template', playbook_dir ~ '/../templates/redis-secret.yaml.j2') | from_yaml }}"
