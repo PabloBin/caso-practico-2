@@ -5,7 +5,7 @@
 
   vars_files:
     - group_vars/vault.yml
-    - group_vars/vm.yml
+    - group_vars/all/vm.yml
 
   vars:
     image_name: "podman/nginx-secure"

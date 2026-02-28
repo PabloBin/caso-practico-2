@@ -13,7 +13,7 @@
           - nginx_secure_image is defined
           - basic_auth_user is defined
           - basic_auth_password is defined
-        fail_msg: "Faltan variables en group_vars/vm.yml (ACR o BasicAuth)."
+        fail_msg: "Faltan variables en group_vars/all/vm.yml (ACR o BasicAuth)."
 
     - name: Instalar dependencias (passlib/crypto) para htpasswd y certificados
       become: true

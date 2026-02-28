@@ -6,7 +6,7 @@
     - "{{ playbook_dir }}/../group_vars/all/terraform.yml"
     - "{{ playbook_dir }}/../group_vars/all/common.yml"
     - "{{ playbook_dir }}/../group_vars/all/acr.yml"
-    - "{{ playbook_dir }}/../group_vars/vm.yml"
+    - "{{ playbook_dir }}/../group_vars/all/vm.yml"
     - "{{ playbook_dir }}/../group_vars/vault.yml"
   roles:
     - vm_nginx_secure
