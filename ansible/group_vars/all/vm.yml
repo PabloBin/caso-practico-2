@@ -7,8 +7,8 @@ nginx_secure_repo: "podman/nginx-secure"
 nginx_secure_image: "{{ acr_login_server }}/{{ nginx_secure_repo }}:{{ cp2_tag }}"
 nginx_secure_name: "nginx-secure"
 
-# Puerto HTTPS público (host) donde se expone el contenedor (contenedor siempre 443)
-nginx_secure_host_port: 443
+# Puerto HTTPS público (host) donde se expone el contenedor (contenedor siempre 8443)
+nginx_secure_host_port: 8443
 
 # Basic Auth (usuario aquí; password en vault.yml)
 nginx_basic_user: "admin"
