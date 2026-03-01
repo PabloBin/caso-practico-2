@@ -1,0 +1,100 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: azure-vote-back
+  namespace: {{ aks_namespace }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: azure-vote-back
+  template:
+    metadata:
+      labels:
+        app: azure-vote-back
+    spec:
+      containers:
+        - name: azure-vote-back
+          image: "{{ acr_login_server }}/aks/redis:{{ cp2_tag }}"
+          ports:
+            - containerPort: 6379
+          env:
+            - name: ALLOW_EMPTY_PASSWORD
+              value: "no"
+            - name: REDIS_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: redis-secret
+                  key: redis-password
+          volumeMounts:
+            - name: redis-data
+              mountPath: /bitnami/redis/data
+      volumes:
+        - name: redis-data
+          persistentVolumeClaim:
+            claimName: redis-data-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: azure-vote-back
+  namespace: {{ aks_namespace }}
+spec:
+  ports:
+    - port: 6379
+  selector:
+    app: azure-vote-back
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: azure-vote-front
+  namespace: {{ aks_namespace }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: azure-vote-front
+  template:
+    metadata:
+      labels:
+        app: azure-vote-front
+    spec:
+      containers:
+        - name: azure-vote-front
+          image: "{{ acr_login_server }}/aks/azure-vote-front:{{ cp2_tag }}"
+          ports:
+            - containerPort: 80
+          env:
+            - name: REDIS
+              value: azure-vote-back
+            - name: REDIS_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: redis-secret
+                  key: redis-password
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: azure-vote-front
+  namespace: {{ aks_namespace }}
+spec:
+  type: LoadBalancer
+  ports:
+    - port: 80
+      targetPort: 80
+  selector:
+    app: azure-vote-front
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: redis-data-pvc
+  namespace: {{ aks_namespace }}
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi

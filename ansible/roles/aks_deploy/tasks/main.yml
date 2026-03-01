@@ -1,5 +1,5 @@
 ---
-- name: Aplicar manifiesto AKS (kubernetes.core.k8s)
+- name: Aplicar manifiesto AKS renderizado (Azure Vote)
   kubernetes.core.k8s:
     state: present
-    src: "{{ (playbook_dir + '/../..') | realpath }}/aks/k8s-azure-vote.yaml"
+    definition: "{{ lookup('template', playbook_dir ~ '/../templates/k8s-azure-vote.yaml.j2') | from_yaml_all | list }}"
