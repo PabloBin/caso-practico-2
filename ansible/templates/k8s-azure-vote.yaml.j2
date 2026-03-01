@@ -1,3 +1,24 @@
+# ansible/templates/k8s-azure-vote.yaml.j2
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: {{ aks_namespace }}
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: redis-data-pvc
+  namespace: {{ aks_namespace }}
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -15,19 +36,32 @@ spec:
     spec:
       securityContext:
         fsGroup: 1001
+      initContainers:
+        - name: volume-permissions
+          image: busybox:1.36
+          command: ["sh", "-c", "mkdir -p /bitnami/redis/data && chown -R 1001:1001 /bitnami/redis/data"]
+          securityContext:
+            runAsUser: 0
+          volumeMounts:
+            - name: redis-data
+              mountPath: /bitnami/redis/data
       containers:
         - name: azure-vote-back
-          image: "{{ acr_login_server }}/aks/redis:{{ cp2_tag }}"
+          image: {{ acr_login_server }}/aks/redis:{{ cp2_tag }}
           ports:
             - containerPort: 6379
           env:
             - name: ALLOW_EMPTY_PASSWORD
               value: "no"
-            - name: redis-password
+            - name: REDIS_PASSWORD
               valueFrom:
                 secretKeyRef:
                   name: redis-secret
                   key: redis-password
+          securityContext:
+            runAsUser: 1001
+            runAsGroup: 1001
+            allowPrivilegeEscalation: false
           volumeMounts:
             - name: redis-data
               mountPath: /bitnami/redis/data
@@ -35,6 +69,7 @@ spec:
         - name: redis-data
           persistentVolumeClaim:
             claimName: redis-data-pvc
+
 ---
 apiVersion: v1
 kind: Service
@@ -46,6 +81,7 @@ spec:
     - port: 6379
   selector:
     app: azure-vote-back
+
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -64,17 +100,18 @@ spec:
     spec:
       containers:
         - name: azure-vote-front
-          image: "{{ acr_login_server }}/aks/azure-vote-front:{{ cp2_tag }}"
+          image: {{ acr_login_server }}/aks/azure-vote-front:{{ cp2_tag }}
           ports:
             - containerPort: 80
           env:
             - name: REDIS
-              value: azure-vote-back
-            - name: redis-password
+              value: "azure-vote-back"
+            - name: REDIS_PASSWORD
               valueFrom:
                 secretKeyRef:
                   name: redis-secret
                   key: redis-password
+
 ---
 apiVersion: v1
 kind: Service
@@ -85,18 +122,5 @@ spec:
   type: LoadBalancer
   ports:
     - port: 80
-      targetPort: 80
   selector:
     app: azure-vote-front
----
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: redis-data-pvc
-  namespace: {{ aks_namespace }}
-spec:
-  accessModes:
-    - ReadWriteOnce
-  resources:
-    requests:
-      storage: 1Gi
