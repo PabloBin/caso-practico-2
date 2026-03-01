@@ -2,9 +2,6 @@ apiVersion: v1
 kind: Namespace
 metadata:
   name: {{ aks_namespace }}
-  labels:
-    name: {{ aks_namespace }}
-
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
@@ -17,19 +14,6 @@ spec:
   resources:
     requests:
       storage: 1Gi
-
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: azure-vote-back
-  namespace: {{ aks_namespace }}
-spec:
-  ports:
-    - port: 6379
-  selector:
-    app: azure-vote-back
-
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -62,13 +46,11 @@ spec:
           ports:
             - containerPort: 6379
           env:
+            # IMPORTANTÍSIMO:
+            # - No ponemos REDIS_PASSWORD
+            # - Permitimos password vacío para que el FRONT (que NO usa password) funcione
             - name: ALLOW_EMPTY_PASSWORD
-              value: "no"
-            - name: REDIS_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: redis-secret
-                  key: redis-password
+              value: "yes"
           volumeMounts:
             - name: redis-data
               mountPath: /bitnami/redis/data
@@ -76,20 +58,19 @@ spec:
         - name: redis-data
           persistentVolumeClaim:
             claimName: redis-data-pvc
-
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: azure-vote-front
+  name: azure-vote-back
   namespace: {{ aks_namespace }}
 spec:
-  type: LoadBalancer
-  ports:
-    - port: 80
   selector:
-    app: azure-vote-front
-
+    app: azure-vote-back
+  ports:
+    - port: 6379
+      targetPort: 6379
+  type: ClusterIP
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -114,8 +95,18 @@ spec:
           env:
             - name: REDIS
               value: azure-vote-back
-            - name: REDIS_PWD
-              valueFrom:
-                secretKeyRef:
-                  name: redis-secret
-                  key: redis-password
+            # IMPORTANTÍSIMO:
+            # - NO REDIS_PASSWORD (este FRONT no lo usa y por eso te da NOAUTH)
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: azure-vote-front
+  namespace: {{ aks_namespace }}
+spec:
+  selector:
+    app: azure-vote-front
+  ports:
+    - port: 80
+      targetPort: 80
+  type: LoadBalancer
