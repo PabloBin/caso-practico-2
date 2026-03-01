@@ -84,7 +84,7 @@ spec:
           env:
             - name: REDIS
               value: azure-vote-back
-            - name: redis-password
+            - name: REDIS_PASSWORD
               valueFrom:
                 secretKeyRef:
                   name: redis-secret
