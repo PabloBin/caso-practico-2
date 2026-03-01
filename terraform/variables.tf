@@ -56,3 +56,14 @@ variable "aks_dns_prefix" {
   description = "DNS prefix for AKS"
   default     = "cp2aks"
 }
+
+variable "acr_sp_client_id" {
+  description = "Client ID (appId) del Service Principal que usaremos para login/push al ACR"
+  type        = string
+}
+
+variable "acr_sp_client_secret" {
+  description = "Client Secret del Service Principal"
+  type        = string
+  sensitive   = true
+}
