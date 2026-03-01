@@ -31,3 +31,7 @@ cp2_azure_vm_rsa*
 
 # Local generated keys (Terraform)
 .keys/
+
+# Contraseña del vault
+ansible/.vault/
+ansible/.vault/vault_pass.txt

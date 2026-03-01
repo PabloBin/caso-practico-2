@@ -58,7 +58,7 @@ TMP_VAULT="$(mktemp)"
 trap 'rm -f "$TMP_CLEAR" "$TMP_VAULT"' EXIT
 
 # Decrypt vault to temp
-ansible-vault decrypt "$VAULT_FILE" --output "$TMP_CLEAR"
+ansible-vault decrypt "$VAULT_FILE" --vault-password-file "$ANSIBLE_DIR/.vault/vault_pass.txt" --output "$TMP_CLEAR"
 
 # Update (or add) acr_password key
 # Keep simple YAML: acr_password: "..."
@@ -71,7 +71,7 @@ else
 fi
 
 # Re-encrypt back to vault file
-ansible-vault encrypt "$TMP_CLEAR" --output "$TMP_VAULT"
+ansible-vault encrypt "$TMP_CLEAR" --vault-password-file "$ANSIBLE_DIR/.vault/vault_pass.txt" --output "$TMP_VAULT"
 mv "$TMP_VAULT" "$VAULT_FILE"
 
 echo "OK: vault actualizado -> ansible/group_vars/vault.yml (acr_password)"
