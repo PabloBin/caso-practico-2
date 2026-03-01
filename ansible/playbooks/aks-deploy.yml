@@ -6,5 +6,6 @@
   vars_files:
     - "{{ playbook_dir }}/../group_vars/all/common.yml"
     - "{{ playbook_dir }}/../group_vars/all/terraform.yml"
+    - "{{ playbook_dir }}/../group_vars/all/acr.yml"
   roles:
     - aks_deploy
