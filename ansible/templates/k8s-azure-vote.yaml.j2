@@ -21,7 +21,7 @@ spec:
           env:
             - name: ALLOW_EMPTY_PASSWORD
               value: "no"
-            - name: REDIS_PASSWORD
+            - name: redis-password
               valueFrom:
                 secretKeyRef:
                   name: redis-secret
@@ -68,7 +68,7 @@ spec:
           env:
             - name: REDIS
               value: azure-vote-back
-            - name: REDIS_PASSWORD
+            - name: redis-password
               valueFrom:
                 secretKeyRef:
                   name: redis-secret
