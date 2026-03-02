@@ -40,3 +40,9 @@ Thumbs.db
 *.zip
 *.tar
 *.tar.gz
+
+# Local generated artifacts
+.keys/
+.vault/
+terraform/tfplan
+podman/nginx-secure/certs/
