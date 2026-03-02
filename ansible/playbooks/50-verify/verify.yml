@@ -3,6 +3,10 @@
   hosts: localhost
   connection: local
   gather_facts: false
-
+  vars_files:
+    - group_vars/all/terraform.yml
+    - group_vars/all/vm.yml
+    - group_vars/vault.yml
+    
   roles:
     - verify
