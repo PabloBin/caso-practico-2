@@ -5,7 +5,7 @@
   gather_facts: false
 
   vars:
-    terraform_dir: "{{ (playbook_dir + '/../../terraform') | realpath }}"
+    terraform_dir: "{{ (playbook_dir + '/../../../terraform') | realpath }}"
     inventory_path: "{{ (playbook_dir + '/../inventories/azure/inventory.ini') | realpath }}"
     tf_vars_path: "{{ (playbook_dir + '/../group_vars/all/terraform.yml') | realpath }}"
 
