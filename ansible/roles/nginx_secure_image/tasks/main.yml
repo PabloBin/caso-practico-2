@@ -1,8 +1,8 @@
 ---
 - name: Definir build context e imagen destino
   ansible.builtin.set_fact:
-    repo_root: "{{ (playbook_dir + '/../..') | realpath }}"
-    image_dir: "{{ (playbook_dir + '/../..') | realpath }}/podman/nginx-secure"
+    repo_root: "{{ (playbook_dir + '/../../..') | realpath }}"
+    image_dir: "{{ (playbook_dir + '/../../..') | realpath }}/podman/nginx-secure"
     full_image: "{{ acr_login_server }}/podman/nginx-secure:{{ cp2_tag }}"
 
 - name: Login en ACR (Podman)

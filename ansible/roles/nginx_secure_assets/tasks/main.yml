@@ -1,11 +1,11 @@
 ---
 - name: Definir rutas del build context
   ansible.builtin.set_fact:
-    cert_dir: "{{ ((playbook_dir + '/../..') | realpath) }}/podman/nginx-secure/certs"
-    crt_path: "{{ ((playbook_dir + '/../..') | realpath) }}/podman/nginx-secure/certs/server.crt"
-    key_path: "{{ ((playbook_dir + '/../..') | realpath) }}/podman/nginx-secure/certs/server.key"
-    csr_path: "{{ ((playbook_dir + '/../..') | realpath) }}/podman/nginx-secure/certs/server.csr"
-    htpasswd_path: "{{ ((playbook_dir + '/../..') | realpath) }}/podman/nginx-secure/certs/.htpasswd"
+    cert_dir: "{{ ((playbook_dir + '/../../..') | realpath) }}/podman/nginx-secure/certs"
+    crt_path: "{{ ((playbook_dir + '/../../..') | realpath) }}/podman/nginx-secure/certs/server.crt"
+    key_path: "{{ ((playbook_dir + '/../../..') | realpath) }}/podman/nginx-secure/certs/server.key"
+    csr_path: "{{ ((playbook_dir + '/../../..') | realpath) }}/podman/nginx-secure/certs/server.csr"
+    htpasswd_path: "{{ ((playbook_dir + '/../../..') | realpath) }}/podman/nginx-secure/certs/.htpasswd"
 
 - name: Asegurar carpeta certs
   ansible.builtin.file:
