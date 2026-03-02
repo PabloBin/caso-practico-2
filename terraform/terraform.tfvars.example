@@ -7,4 +7,4 @@ location    = "italynorth"
 
 # Debe ser único globalmente (por ejemplo, para el nombre del ACR)
 # Usa solo minúsculas y números, sin guiones.
-name_prefix = "casopractico2_qs2f3waas"
+name_prefix = "casopractico2qs2f3waas"
