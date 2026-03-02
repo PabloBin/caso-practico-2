@@ -3,17 +3,17 @@
 # Regenerate with:
 #   ansible-playbook -i localhost, playbooks/00-sync/sync-from-terraform.yml
 
-tf_resource_group_name: "pablocondecp2zbo9ru-rg"
+tf_resource_group_name: "cp22F3waAS-rg"
 tf_location: "italynorth"
 
-tf_acr_name: "pablocondecp2zbo9ruacr"
-tf_acr_login_server: "pablocondecp2zbo9ruacr.azurecr.io"
+tf_acr_name: "cp22F3waASacr"
+tf_acr_login_server: "cp22F3waASacr.azurecr.io"
 
 tf_vm_public_ip: "172.213.211.62"
-tf_vm_name: "pablocondecp2zbo9ru-vm"
+tf_vm_name: "cp22F3waAS-vm"
 tf_vm_admin_username: "azureuser"
 tf_ssh_private_key_path: "../.keys/vm_ubuntu_key"
 tf_ssh_public_key_path: "../.keys/vm_ubuntu_key.pub"
 
 tf_aks_name: "casopractico2-dev-aks"
-tf_aks_resource_group: "pablocondecp2zbo9ru-rg"
+tf_aks_resource_group: "cp22F3waAS-rg"
