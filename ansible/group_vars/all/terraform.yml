@@ -1,7 +1,7 @@
 ---
 # AUTO-GENERATED from Terraform outputs. Do not edit manually.
 # Regenerate with:
-#   ansible-playbook -i localhost, playbooks/sync_from_terraform.yml
+#   ansible-playbook -i localhost, playbooks/00-sync/sync-from-terraform.yml
 
 tf_resource_group_name: "pablocondecp2zbo9ru-rg"
 tf_location: "italynorth"

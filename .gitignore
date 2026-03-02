@@ -1,37 +1,42 @@
-# Terraform
-**/.terraform/
+# ===== Terraform =====
+**/.terraform/*
 *.tfstate
 *.tfstate.*
-*.tfplan
-tfplan
-
-# Variables / secretos Terraform
+crash.log
+crash.*.log
 *.tfvars
+!terraform/terraform.tfvars.example
 *.tfvars.json
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+.terraformrc
+terraform.rc
 
-# Ansible
+# ===== Ansible =====
 *.retry
+*.log
 ansible.log
+**/__pycache__/
+**/*.pyc
+**/.cache/
 
-# Certificados / claves / credenciales (MUY IMPORTANTE)
-*.pem
-*.key
-*.pfx
-*.crt
-*.cer
-*.p12
-*.htpasswd
-id_rsa*
-id_ed25519*
-cp2_azure_vm_rsa*
+# ===== Kubernetes / kubeconfig =====
+.kube/
+kubeconfig
+*kubeconfig*
 
-# OS/Editor
+# ===== OS / Editor =====
 .DS_Store
+Thumbs.db
 .vscode/
+.idea/
+*.swp
+*.swo
+*~
 
-# Local generated keys (Terraform)
-.keys/
-
-# Contraseña del vault
-ansible/.vault/
-ansible/.vault/vault_pass.txt
+# ===== Archives =====
+*.zip
+*.tar
+*.tar.gz

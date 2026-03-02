@@ -1,0 +1,8 @@
+---
+- name: Verificaciones post-despliegue (VM + AKS)
+  hosts: localhost
+  connection: local
+  gather_facts: false
+
+  roles:
+    - verify

@@ -1,0 +1,10 @@
+# terraform/terraform.tfvars.example
+# Copia este fichero a terraform.tfvars y ajusta los valores.
+
+project     = "casopractico2"
+env         = "dev"
+location    = "italynorth"
+
+# Debe ser único globalmente (por ejemplo, para el nombre del ACR)
+# Usa solo minúsculas y números, sin guiones.
+name_prefix = "cp2<tuidentificador>"

@@ -1,0 +1,7 @@
+---
+- name: Preparar VM (Ubuntu) e instalar Podman
+  hosts: vm
+  become: true
+  gather_facts: true
+  roles:
+    - vm_base
