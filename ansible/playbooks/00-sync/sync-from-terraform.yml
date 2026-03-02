@@ -6,8 +6,8 @@
 
   vars:
     terraform_dir: "{{ (playbook_dir + '/../../../terraform') | realpath }}"
-    inventory_path: "{{ (playbook_dir + '/../inventories/azure/inventory.ini') | realpath }}"
-    tf_vars_path: "{{ (playbook_dir + '/../group_vars/all/terraform.yml') | realpath }}"
+    inventory_path: "{{ (playbook_dir + '/../../inventories/azure/inventory.ini') | realpath }}"
+    tf_vars_path: "{{ (playbook_dir + '/../../group_vars/all/terraform.yml') | realpath }}"
 
     required_outputs:
       - resource_group_name
@@ -63,13 +63,13 @@
 
     - name: Write group_vars/all/terraform.yml
       ansible.builtin.template:
-        src: "{{ (playbook_dir + '/../templates/terraform-vars.yml.j2') | realpath }}"
+        src: "{{ (playbook_dir + '/../../templates/terraform-vars.yml.j2') | realpath }}"
         dest: "{{ tf_vars_path }}"
         mode: "0644"
 
     - name: Write inventories/azure/inventory.ini
       ansible.builtin.template:
-        src: "{{ (playbook_dir + '/../templates/inventory.ini.j2') | realpath }}"
+        src: "{{ (playbook_dir + '/../../templates/inventory.ini.j2') | realpath }}"
         dest: "{{ inventory_path }}"
         mode: "0644"
 
