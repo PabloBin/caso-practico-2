@@ -1,4 +1,4 @@
-- name: Deploy nginx-secure on Azure VM using Podman (443 + TLS + Basic Auth)
+- name: Deploy nginx-secure on Azure VM using Podman (TLS + Basic Auth) on 8443
   hosts: azurevm
   become: true
   gather_facts: true
@@ -13,10 +13,16 @@
     full_image: "{{ acr_login_server }}/{{ image_name }}:{{ image_tag }}"
 
     container_name: "nginx-secure"
-    host_port_https: 443
-    container_port_https: 8443
 
-    systemd_unit_path: "/etc/systemd/system/{{ container_name }}.service"
+    # IMPORTANTE:
+    # - En la imagen nginx-secure, nginx escucha DENTRO del contenedor en 443 (HTTPS).
+    # - Para evitar puerto privilegiado en host con rootless, exponemos 8443 en la VM.
+    host_port_https: 8443
+    container_port_https: 443
+
+    vm_app_user: "{{ vm_admin_username | default('azureuser') }}"
+    user_systemd_dir: "/home/{{ vm_app_user }}/.config/systemd/user"
+    user_unit_path: "{{ user_systemd_dir }}/nginx-secure.service"
 
   tasks:
     - name: Ensure podman is installed
@@ -25,23 +31,46 @@
         state: present
         update_cache: true
 
-    - name: Podman login to ACR (admin user)
+    # Esto soluciona “arranca y luego se para” tras reprovisionar o al cerrar sesión:
+    # systemd --user NO se queda vivo si Linger=no.
+    - name: Enable linger for user (so systemd --user keeps running after logout/reboot)
+      ansible.builtin.command: "loginctl enable-linger {{ vm_app_user }}"
+      changed_when: false
+
+    - name: Ensure user systemd directory exists
+      ansible.builtin.file:
+        path: "{{ user_systemd_dir }}"
+        state: directory
+        owner: "{{ vm_app_user }}"
+        group: "{{ vm_app_user }}"
+        mode: "0755"
+
+    # Login/pull/run en ROOTLESS (como azureuser), no como root
+    - name: Podman login to ACR (admin user) - rootless
+      become: true
+      become_user: "{{ vm_app_user }}"
       ansible.builtin.command: >
         podman login {{ acr_login_server }}
         -u {{ acr_username }}
         -p {{ acr_password }}
       changed_when: false
 
-    - name: Pull image from ACR
+    - name: Pull image from ACR - rootless
+      become: true
+      become_user: "{{ vm_app_user }}"
       ansible.builtin.command: podman pull "{{ full_image }}"
       changed_when: true
 
-    - name: Remove existing container if any
+    - name: Remove existing container if any - rootless
+      become: true
+      become_user: "{{ vm_app_user }}"
       ansible.builtin.command: podman rm -f "{{ container_name }}"
       failed_when: false
       changed_when: false
 
-    - name: Run container (map 443 -> 8443)
+    - name: Run container (map 8443 -> 443) - rootless
+      become: true
+      become_user: "{{ vm_app_user }}"
       ansible.builtin.command: >
         podman run -d --name {{ container_name }}
         --restart=always
@@ -49,27 +78,47 @@
         {{ full_image }}
       changed_when: true
 
-    - name: Create systemd unit for the container
+    # Genera unit systemd para --user, y lo dejo fijo como nginx-secure.service
+    - name: Generate systemd unit for container - rootless
+      become: true
+      become_user: "{{ vm_app_user }}"
       ansible.builtin.command: podman generate systemd --name "{{ container_name }}" --files --new
       args:
-        chdir: /tmp
+        chdir: "/home/{{ vm_app_user }}"
       changed_when: true
 
-    - name: Install systemd unit
+    - name: Install systemd user unit as nginx-secure.service
       ansible.builtin.copy:
-        src: "/tmp/container-{{ container_name }}.service"
-        dest: "{{ systemd_unit_path }}"
-        owner: root
-        group: root
+        src: "/home/{{ vm_app_user }}/container-{{ container_name }}.service"
+        dest: "{{ user_unit_path }}"
+        owner: "{{ vm_app_user }}"
+        group: "{{ vm_app_user }}"
         mode: "0644"
         remote_src: true
 
-    - name: Reload systemd
+    - name: Reload user systemd
+      become: true
+      become_user: "{{ vm_app_user }}"
       ansible.builtin.systemd:
         daemon_reload: true
+        scope: user
 
-    - name: Enable and start service
+    - name: Enable and start nginx-secure (user service)
+      become: true
+      become_user: "{{ vm_app_user }}"
       ansible.builtin.systemd:
-        name: "{{ container_name }}"
+        name: nginx-secure.service
         enabled: true
         state: started
+        scope: user
+
+    - name: Wait for local HTTPS to answer (401/200)
+      ansible.builtin.uri:
+        url: "https://localhost:{{ host_port_https }}/"
+        method: GET
+        validate_certs: false
+        status_code: [200, 401]
+      register: nginx_probe
+      retries: 15
+      delay: 2
+      until: nginx_probe.status in [200, 401]

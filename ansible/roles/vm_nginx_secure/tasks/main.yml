@@ -12,18 +12,46 @@
       - nginx_basic_password is defined
     fail_msg: "Faltan variables (ACR/nginx-secure/basic auth). Revisa group_vars/*."
 
-- name: Login en ACR (Podman) desde la VM
+# -------------------------
+# 1) Preparar persistencia rootless (linger)
+# -------------------------
+- name: Obtener usuario remoto (debería ser azureuser)
+  ansible.builtin.set_fact:
+    vm_user: "{{ ansible_user | default('azureuser') }}"
+
+- name: Habilitar linger para el usuario (para que systemd --user arranque en boot)
+  become: true
+  ansible.builtin.command: "loginctl enable-linger {{ vm_user }}"
+  changed_when: false
+
+# Necesitamos UID para construir XDG_RUNTIME_DIR y DBUS_SESSION_BUS_ADDRESS
+- name: Obtener UID del usuario
+  ansible.builtin.command: "id -u {{ vm_user }}"
+  register: vm_uid_cmd
+  changed_when: false
+
+- name: Set UID fact
+  ansible.builtin.set_fact:
+    vm_uid: "{{ vm_uid_cmd.stdout | trim }}"
+
+# -------------------------
+# 2) Login + Pull + Run (rootless)
+# -------------------------
+- name: Login en ACR (Podman) desde la VM (rootless)
   no_log: true
+  become: false
   containers.podman.podman_login:
     registry: "{{ acr_login_server }}"
     username: "{{ acr_username }}"
     password: "{{ acr_password }}"
 
-- name: Pull imagen nginx-secure desde ACR
+- name: Pull imagen nginx-secure desde ACR (rootless)
+  become: false
   containers.podman.podman_image:
     name: "{{ nginx_secure_image }}"
 
-- name: Ejecutar contenedor nginx-secure (TLS + Basic Auth dentro de la imagen)
+- name: Ejecutar contenedor nginx-secure (TLS + Basic Auth dentro de la imagen) (rootless)
+  become: false
   containers.podman.podman_container:
     name: "{{ nginx_secure_name }}"
     image: "{{ nginx_secure_image }}"
@@ -32,6 +60,53 @@
     publish:
       - "{{ nginx_secure_host_port }}:443"
 
+# -------------------------
+# 3) Crear servicio systemd --user (persistente)
+# -------------------------
+- name: Asegurar carpeta systemd --user
+  become: false
+  ansible.builtin.file:
+    path: "{{ ansible_env.HOME }}/.config/systemd/user"
+    state: directory
+    mode: "0755"
+
+- name: Generar unit systemd (podman generate systemd)
+  become: false
+  ansible.builtin.command: >
+    podman generate systemd --name {{ nginx_secure_name }} --files --new
+  args:
+    chdir: "{{ ansible_env.HOME }}"
+  register: gen_unit
+  changed_when: true
+
+# Podman lo genera como: ~/container-<name>.service
+- name: Instalar unit como nginx-secure.service (systemd --user)
+  become: false
+  ansible.builtin.copy:
+    src: "{{ ansible_env.HOME }}/container-{{ nginx_secure_name }}.service"
+    dest: "{{ ansible_env.HOME }}/.config/systemd/user/{{ nginx_secure_name }}.service"
+    remote_src: true
+    mode: "0644"
+
+- name: Recargar systemd --user
+  become: false
+  ansible.builtin.command: "systemctl --user daemon-reload"
+  environment:
+    XDG_RUNTIME_DIR: "/run/user/{{ vm_uid }}"
+    DBUS_SESSION_BUS_ADDRESS: "unix:path=/run/user/{{ vm_uid }}/bus"
+  changed_when: false
+
+- name: Enable + start del servicio systemd --user
+  become: false
+  ansible.builtin.command: "systemctl --user enable --now {{ nginx_secure_name }}.service"
+  environment:
+    XDG_RUNTIME_DIR: "/run/user/{{ vm_uid }}"
+    DBUS_SESSION_BUS_ADDRESS: "unix:path=/run/user/{{ vm_uid }}/bus"
+  changed_when: false
+
+# -------------------------
+# 4) Checks locales
+# -------------------------
 - name: Validación local (401 sin auth)
   ansible.builtin.uri:
     url: "https://localhost:{{ nginx_secure_host_port }}/"
