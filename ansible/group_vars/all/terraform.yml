@@ -9,7 +9,7 @@ tf_location: "italynorth"
 tf_acr_name: "pablocondecp2zbo9ruacr"
 tf_acr_login_server: "pablocondecp2zbo9ruacr.azurecr.io"
 
-tf_vm_public_ip: "172.213.146.126"
+tf_vm_public_ip: "172.213.211.62"
 tf_vm_name: "pablocondecp2zbo9ru-vm"
 tf_vm_admin_username: "azureuser"
 tf_ssh_private_key_path: "../.keys/vm_ubuntu_key"
