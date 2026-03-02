@@ -7,4 +7,4 @@ location    = "italynorth"
 
 # Debe ser único globalmente (por ejemplo, para el nombre del ACR)
 # Usa solo minúsculas y números, sin guiones.
-name_prefix = "cp2<tuidentificador>"
+name_prefix = "cp22F3waAS"
