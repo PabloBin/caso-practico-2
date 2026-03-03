@@ -7,7 +7,7 @@
   pre_tasks:
     - name: Esperar a que SSH esté disponible en la VM
       ansible.builtin.wait_for:
-        host: "{{ tf_vm_public_ip }}"
+        host: "{{ ansible_host | default(inventory_hostname) }}"
         port: 22
         delay: 5
         timeout: 180
