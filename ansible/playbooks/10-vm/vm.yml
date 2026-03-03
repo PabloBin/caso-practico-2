@@ -1,18 +1,21 @@
 ---
+- name: Esperar a que SSH esté disponible en la VM
+  hosts: localhost
+  connection: local
+  gather_facts: false
+
+  tasks:
+    - name: Esperar a que el puerto 22 esté accesible
+      ansible.builtin.wait_for:
+        host: "{{ hostvars['cp2vm']['ansible_host'] | default('') }}"
+        port: 22
+        delay: 5
+        timeout: 180
+
 - name: Preparar VM (Ubuntu) e instalar Podman
   hosts: vm
   become: true
   gather_facts: true
-
-  pre_tasks:
-    - name: Esperar a que SSH esté disponible en la VM
-      ansible.builtin.wait_for:
-        host: "{{ ansible_host | default(inventory_hostname) }}"
-        port: 22
-        delay: 5
-        timeout: 180
-      delegate_to: localhost
-      become: false
 
   roles:
     - vm_base
