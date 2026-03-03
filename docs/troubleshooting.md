@@ -138,3 +138,26 @@ Este documento recopila fallos habituales durante el despliegue y validación de
 
     az aks get-credentials -g "$AKS_RG" -n "$AKS_NAME" --overwrite-existing
     kubectl get nodes
+
+## 5) Ansible: “Primera ejecución falla (SSH 22 timeout) y segunda funciona”
+
+**Síntoma**
+- Tras `terraform apply` (o `destroy/apply`), al ejecutar:
+
+  `ansible-playbook site.yml --ask-vault-pass`
+
+  falla el play de la VM con *Connection timed out* en el puerto 22, pero al ejecutar el mismo comando por segunda vez funciona.
+
+**Causa**
+- Ansible **carga el inventario una sola vez al arrancar el proceso**.
+- Aunque el paso `sync_tf` regenere `ansible/inventories/azure/inventory.ini` con la IP nueva, los siguientes plays del **mismo run** siguen usando el inventario que ya estaba cargado en memoria al inicio (con IP antigua).
+
+**Solución aplicada en este repo**
+- En `playbooks/00-sync/sync-from-terraform.yml` se refresca el inventario **en memoria** usando `add_host` con los outputs de Terraform (IP pública, usuario y clave SSH).
+- Así, los plays posteriores (`hosts: vm`) ya conectan a la IP correcta en la **primera** ejecución.
+
+**Comprobación rápida**
+- Revisa el resumen de `sync_tf` (debe mostrar la IP pública actual).
+- Si necesitas ver el inventario generado:
+
+  `cat ansible/inventories/azure/inventory.ini`
