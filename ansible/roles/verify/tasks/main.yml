@@ -9,6 +9,10 @@
     vm_ip: "{{ tf_vm_public_ip }}"
     vm_https_url: "https://{{ tf_vm_public_ip }}:{{ nginx_secure_host_port | default(8443) }}/"
 
+# ------------------------
+# VM checks (con espera)
+# ------------------------
+
 - name: VM - Debe devolver 401 (sin credenciales)
   ansible.builtin.uri:
     url: "{{ vm_https_url }}"
@@ -16,6 +20,11 @@
     validate_certs: false
     return_content: false
     status_code: 401
+    timeout: 15
+  register: vm_401
+  retries: 6
+  delay: 10
+  until: vm_401.status == 401
 
 - name: VM - Debe devolver 200 (con Basic Auth)
   ansible.builtin.uri:
@@ -24,19 +33,36 @@
     validate_certs: false
     return_content: false
     status_code: 200
+    timeout: 15
     force_basic_auth: true
     url_username: "{{ nginx_basic_user }}"
     url_password: "{{ nginx_basic_password }}"
+  register: vm_200
+  retries: 6
+  delay: 10
+  until: vm_200.status == 200
 
-# --- AKS checks ---
+# ------------------------
+# AKS checks (con espera)
+# ------------------------
 
-- name: AKS - Obtener Service azure-vote-front
+- name: AKS - Esperar a que aparezca EXTERNAL_IP/hostname en el Service azure-vote-front
   kubernetes.core.k8s_info:
     api_version: v1
     kind: Service
     namespace: azure-vote
     name: azure-vote-front
   register: svc_info
+  retries: 18
+  delay: 10
+  until: >
+    svc_info.resources | length > 0 and
+    (svc_info.resources[0].status.loadBalancer.ingress is defined) and
+    (svc_info.resources[0].status.loadBalancer.ingress | length > 0) and
+    (
+      (svc_info.resources[0].status.loadBalancer.ingress[0].ip | default('', true) | length > 0) or
+      (svc_info.resources[0].status.loadBalancer.ingress[0].hostname | default('', true) | length > 0)
+    )
 
 - name: AKS - Extraer EXTERNAL_IP del Service
   ansible.builtin.set_fact:
@@ -47,14 +73,13 @@
         | default('', true)
       }}
 
-- name: AKS - Validar que existe EXTERNAL_IP/hostname en el Service
-  ansible.builtin.assert:
-    that:
-      - svc_info.resources | length > 0
-      - azure_vote_external_ip | length > 0
-    fail_msg: >
-      El Service 'azure-vote-front' no tiene EXTERNAL_IP/hostname todavía.
-      Espera un poco y vuelve a ejecutar: ansible-playbook site.yml --ask-vault-pass --tags "verify"
+- name: AKS - Esperar a que el LB acepte conexiones HTTP (80)
+  ansible.builtin.wait_for:
+    host: "{{ azure_vote_external_ip }}"
+    port: 80
+    delay: 5
+    timeout: 120
+  when: azure_vote_external_ip | length > 0
 
 - name: AKS - Comprobar que Azure Vote responde por HTTP
   ansible.builtin.uri:
@@ -62,6 +87,11 @@
     method: GET
     return_content: false
     status_code: 200
+    timeout: 15
+  register: aks_http
+  retries: 12
+  delay: 10
+  until: aks_http.status == 200
 
 - name: AKS - Obtener Pods en namespace azure-vote
   kubernetes.core.k8s_info:
@@ -70,7 +100,7 @@
     namespace: azure-vote
   register: pods_info
 
-- name: AKS - Comprobar que los Pods están Running/Completed
+- name: AKS - Esperar a que los Pods estén Running/Succeeded
   ansible.builtin.assert:
     that:
       - (pods_info.resources | length) > 0
@@ -85,6 +115,10 @@
     fail_msg: >
       Hay Pods que no están en Running/Succeeded.
       Revisa: kubectl get pods -n azure-vote -o wide && kubectl describe pod -n azure-vote <pod>
+  register: pods_assert
+  retries: 12
+  delay: 10
+  until: pods_assert is not failed
 
 - name: AKS - Obtener PVCs en namespace azure-vote
   kubernetes.core.k8s_info:
@@ -108,6 +142,10 @@
     fail_msg: >
       No hay PVCs en Bound (o no hay PVCs).
       Revisa: kubectl get pvc -n azure-vote && kubectl describe pvc -n azure-vote
+  register: pvc_assert
+  retries: 12
+  delay: 10
+  until: pvc_assert is not failed
 
 - name: Resumen verificación
   ansible.builtin.debug:

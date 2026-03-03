@@ -3,5 +3,16 @@
   hosts: vm
   become: true
   gather_facts: true
+
+  pre_tasks:
+    - name: Esperar a que SSH esté disponible en la VM
+      ansible.builtin.wait_for:
+        host: "{{ tf_vm_public_ip }}"
+        port: 22
+        delay: 5
+        timeout: 180
+      delegate_to: localhost
+      become: false
+
   roles:
     - vm_base
