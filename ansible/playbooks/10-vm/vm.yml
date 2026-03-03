@@ -1,17 +1,16 @@
 ---
-- name: Esperar a que SSH esté disponible en la VM (reintentos cortos)
+- name: Esperar a que SSH esté disponible en la VM (antes de conectar)
   hosts: localhost
   connection: local
   gather_facts: false
 
-  vars:
-    vm_target: "{{ groups['vm'][0] }}"
-    vm_ip: "{{ hostvars[vm_target].ansible_host | default(vm_target) }}"
+  vars_files:
+    - "{{ playbook_dir }}/../../group_vars/all/terraform.yml"
 
   tasks:
-    - name: Esperar a SSH en {{ vm_ip }}:22 (hasta ~60s)
+    - name: Esperar a SSH en {{ tf_vm_public_ip }}:22 (hasta ~60s)
       ansible.builtin.wait_for:
-        host: "{{ vm_ip }}"
+        host: "{{ tf_vm_public_ip }}"
         port: 22
         timeout: 5
       register: ssh_ready
