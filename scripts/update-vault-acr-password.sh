@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Resolve repo root (parent of this scripts/ folder)
+# Resolver la raíz del repositorio (el directorio padre de esta carpeta/script)
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 
@@ -25,13 +25,13 @@ if [[ ! -f "$VAULT_FILE" ]]; then
   exit 1
 fi
 
-# Ensure logged in (soft check)
+# Asegurar que se ha iniciado sesión
 if ! az account show >/dev/null 2>&1; then
   echo "ERROR: No estás logueado en Azure CLI. Ejecuta: az login"
   exit 1
 fi
 
-# Read ACR name from Terraform outputs (state must exist)
+# Leer el nombre del ACR desde las salidas de Terraform
 ACR_NAME="$(terraform -chdir="$TF_DIR" output -raw acr_name 2>/dev/null || true)"
 if [[ -z "$ACR_NAME" ]]; then
   echo "ERROR: No puedo leer 'acr_name' desde Terraform outputs."
@@ -41,7 +41,7 @@ fi
 
 echo "ACR detectado: $ACR_NAME"
 
-# Get current ACR admin password (passwords[0].value)
+# Obtener la contraseña actual de administrador del ACR (passwords[0].value)
 ACR_PASSWORD="$(
   az acr credential show -n "$ACR_NAME" \
     --query "passwords[0].value" -o tsv
@@ -57,20 +57,20 @@ TMP_CLEAR="$(mktemp)"
 TMP_VAULT="$(mktemp)"
 trap 'rm -f "$TMP_CLEAR" "$TMP_VAULT"' EXIT
 
-# Decrypt vault to temp
+# Descifrar el vault en un archivo temporal
 ansible-vault decrypt "$VAULT_FILE" --vault-password-file "$ANSIBLE_DIR/.vault/vault_pass.txt" --output "$TMP_CLEAR"
 
-# Update (or add) acr_password key
-# Keep simple YAML: acr_password: "..."
+# Actualizar (o añadir) la clave acr_password
+# Mantener YAML simple: acr_password: "..."
 if grep -qE '^\s*acr_password\s*:' "$TMP_CLEAR"; then
-  # Replace existing line
+  # Reemplazar la línea existente
   sed -i -E 's#^\s*acr_password\s*:.*#acr_password: "'"$ACR_PASSWORD"'"#' "$TMP_CLEAR"
 else
-  # Append
+  # Añadir
   printf '\nacr_password: "%s"\n' "$ACR_PASSWORD" >> "$TMP_CLEAR"
 fi
 
-# Re-encrypt back to vault file
+# Volver a cifrar en el archivo vault
 ansible-vault encrypt "$TMP_CLEAR" --vault-password-file "$ANSIBLE_DIR/.vault/vault_pass.txt" --output "$TMP_VAULT"
 mv "$TMP_VAULT" "$VAULT_FILE"
 

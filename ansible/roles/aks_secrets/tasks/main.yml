@@ -1,5 +1,5 @@
 ---
-- name: Ensure AKS namespace exists
+- name: Asegurar que el espacio de nombres de AKS existe
   kubernetes.core.k8s:
     state: present
     definition:
@@ -8,7 +8,7 @@
       metadata:
         name: "{{ aks_namespace }}"
 
-- name: Apply Redis secret in AKS
+- name: Aplicar el secreto de Redis en AKS
   kubernetes.core.k8s:
     state: present
     definition: "{{ lookup('template', playbook_dir ~ '/../../templates/redis-secret.yaml.j2') | from_yaml }}"

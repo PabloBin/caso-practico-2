@@ -19,7 +19,7 @@ resource "azurerm_kubernetes_cluster" "aks" {
   }
 }
 
-# Grant AKS permission to pull images from ACR
+# Conceder a AKS permiso para extraer imágenes desde ACR
 resource "azurerm_role_assignment" "aks_acr_pull" {
   scope                = azurerm_container_registry.acr.id
   role_definition_name = "AcrPull"

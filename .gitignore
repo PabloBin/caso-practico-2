@@ -37,12 +37,12 @@ Thumbs.db
 *.swo
 *~
 
-# ===== Archives =====
+# ===== Archivos =====
 *.zip
 *.tar
 *.tar.gz
 
-# Local generated artifacts
+# Artefactos generados localmente
 .keys/
 .vault/
 terraform/tfplan

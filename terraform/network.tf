@@ -1,5 +1,5 @@
 # --------------------
-# Network for VM
+# Red para la VM
 # --------------------
 resource "azurerm_virtual_network" "vnet" {
   name                = local.vnet_name

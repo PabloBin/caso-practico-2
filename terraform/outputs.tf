@@ -26,7 +26,7 @@ output "vm_admin_username" {
   value = var.vm_admin_username
 }
 
-# Safe outputs for the generated SSH key (no private key in outputs)
+# Salidas seguras para la clave SSH generada (sin incluir la clave privada en las salidas)
 output "ssh_public_key_openssh" {
   value = tls_private_key.vm_ssh.public_key_openssh
 }

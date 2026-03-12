@@ -1,11 +1,11 @@
-- name: Login to ACR
+- name: Iniciar sesión en ACR
   containers.podman.podman_login:
     registry: "{{ acr_login_server }}"
     username: "{{ acr_username }}"
     password: "{{ acr_password }}"
     tlsverify: false
 
-- name: Pull source images
+- name: Descargar las imágenes de origen
   containers.podman.podman_image:
     name: "{{ item.source }}/{{ item.name }}:{{ item.tag }}"
     pull: true
@@ -13,7 +13,7 @@
   loop_control:
     label: "{{ item.source }}/{{ item.name }}:{{ item.tag }}"
 
-- name: Tag images for ACR
+- name: Etiquetar las imágenes para ACR
   containers.podman.podman_tag:
     image: "{{ item.source }}/{{ item.name }}:{{ item.tag }}"
     target_names:
@@ -22,7 +22,7 @@
   loop_control:
     label: "{{ acr_login_server }}/{{ item.dest_repo }}:{{ item.dest_tag }}"
 
-- name: Push images to ACR
+- name: Subir las imágenes a ACR
   containers.podman.podman_image:
     name: "{{ acr_login_server }}/{{ item.dest_repo }}:{{ item.dest_tag }}"
     push: true

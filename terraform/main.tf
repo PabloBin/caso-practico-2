@@ -1,7 +1,7 @@
 locals {
   # Naming
   rg_name  = "${var.name_prefix}-rg"
-  acr_name = replace("${var.name_prefix}acr", "-", "") # ACR only allows alphanumerics
+  acr_name = replace("${var.name_prefix}acr", "-", "") # ACR solo permite caracteres alfanuméricos.
   aks_name = "${var.name_prefix}-aks"
   vm_name  = "${var.name_prefix}-vm"
 
@@ -11,7 +11,7 @@ locals {
   pip_name    = "${var.name_prefix}-pip"
   nic_name    = "${var.name_prefix}-nic"
 
-  # Tags (en el enunciado piden environment=casopractico2)
+  # Tags
   tags = {
     environment = var.project
     project     = var.project
